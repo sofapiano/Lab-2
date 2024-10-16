@@ -3,7 +3,8 @@ import csv
 import random
 
 DATASET_PATH = 'books-en.csv'
-OUT_PATH = 'author.json'
+OUT_PATH_AUTHOR = 'author.json'
+OUT_PATH_BIBL = 'books.json'
 
 
 def get_title(dataset):
@@ -52,7 +53,7 @@ def find_by_author_filtered(dataset, title, author):
     for line in dataset:
         obj = get_object(line, title)
         author_value = obj['Book-Author']
-        if author_value == author:
+        if author_value.capitalize() == author.capitalize():
             if int(obj['Year-Of-Publication']) >= 2003:
                 results.append(obj)
 
@@ -83,7 +84,7 @@ if __name__ == '__main__':
         # поиск книги по автору (от 2018)
         res = find_by_author_filtered(dataset, title, input())
         ans = json.dumps(res, indent=4)
-        with open(OUT_PATH, 'w') as out:
+        with open(OUT_PATH_AUTHOR, 'w') as out:
             out.write(ans)
         # но эта функция априори не может работать, т.к. в датасете нет книг 
         # после 2018 года. поэтому я изменила год-ограничение на 2003
@@ -95,4 +96,9 @@ if __name__ == '__main__':
         dataset.seek(0)
         
         # генератор библиографических ссылок вида <автор>. <название> - <год> для 20 записей
-        print(find_by_isbn(dataset, title, 195153448))
+        res = []
+        for j in range(20):
+            res.append(find_by_isbn(dataset, title, random.choice(isbns)))
+        ans = json.dumps(res, indent = 4)
+        with open(OUT_PATH_BIBL, 'w') as out:
+            out.write(ans)
