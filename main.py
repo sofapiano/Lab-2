@@ -1,8 +1,9 @@
 import json
 import csv
+import random
 
 DATASET_PATH = 'books-en.csv'
-OUT_PATH = 'out.json'
+OUT_PATH = 'author.json'
 
 
 def get_title(dataset):
@@ -46,18 +47,30 @@ def filter_book_title(dataset, title):
 
 
 def find_by_author_filtered(dataset, title, author):
-    
     results = []
     
     for line in dataset:
         obj = get_object(line, title)
         author_value = obj['Book-Author']
         if author_value == author:
-            if int(obj['Year-Of-Publication']) >= 2018:
+            if int(obj['Year-Of-Publication']) >= 2003:
                 results.append(obj)
 
     dataset.seek(0)
     return results
+
+
+def find_by_isbn(dataset, title, isbn):
+    for line in dataset:
+        obj = get_object(line, title)
+        isbn_value = obj['ISBN']
+        if isbn_value == isbn:
+            author, book_title, year = obj['Book-Author'], obj['Book-Title'], \
+                obj['Year-Of-Publication']
+            break
+
+    dataset.seek(0)
+    return f'{author}. {book_title} - {year}'
 
 
 if __name__ == '__main__':
@@ -68,5 +81,18 @@ if __name__ == '__main__':
         print(filter_book_title(dataset, title))
 
         # поиск книги по автору (от 2018)
-        print(find_by_author_filtered(dataset, title, input()))
-        # но эта функция априори не может работать, т.к. в датасете нет книг после 2018 года
+        res = find_by_author_filtered(dataset, title, input())
+        ans = json.dumps(res, indent=4)
+        with open(OUT_PATH, 'w') as out:
+            out.write(ans)
+        # но эта функция априори не может работать, т.к. в датасете нет книг 
+        # после 2018 года. поэтому я изменила год-ограничение на 2003
+
+        isbns = []
+        for line in dataset:
+            obj = get_object(line, title)
+            isbns.append(obj['ISBN'])
+        dataset.seek(0)
+        
+        # генератор библиографических ссылок вида <автор>. <название> - <год> для 20 записей
+        print(find_by_isbn(dataset, title, 195153448))
